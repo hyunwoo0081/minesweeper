@@ -10,6 +10,8 @@ let flagCount = 0;
 let leftBlock = mapCols * mapRows;
 let isStart = -1;
 
+var interval;
+
 var mousePointer = [-1, -1, -1]; //x, y, mouseType;
 
 init();
@@ -31,7 +33,11 @@ function init(){
 				if(mousePointer[0] == j && mousePointer[1] == i){
 					if(mousePointer[2] == 0){
 						//left click;
-						openMap(j, i);
+						if(isStart == -2){
+							//reStart;
+						}else{
+							openMap(j, i);
+						}
 					}
 					else if(mousePointer[2] == 2){
 						//right click;
@@ -60,14 +66,19 @@ function openMap(x, y){
 	if(isStart == -1){
 		isStart = 0;
 		createNewMap(x, y);
+		interval = setInterval(function(){
+			isStart++;
+			timeText.innerHTML = numberConvert(isStart);
+		}, 1000);
 	}
 
 	mapOpener(x, y);
 
 	//victory the game;
-	if(leftBlock == bombcount){
+	if(isStart >= 0 && leftBlock == bombcount){
 		alert("고생하셨습니다.");
 		isStart = -2;
+		clearInterval(interval);
 	}
 }
 
@@ -96,6 +107,8 @@ function mapOpener(x, y){
 		}else{
 			//lose the game;
 			showSolution();
+			clearInterval(interval);
+			isStart = -2;
 			//alert("게임 종료!");
 		}
 	}
