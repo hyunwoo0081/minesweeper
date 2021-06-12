@@ -16,10 +16,18 @@ var mousePointer = [-1, -1, -1]; //x, y, mouseType;
 
 init();
 function init(){
+	const PADDING = 2;
+	const SPACING = 3;
+	let availableWidth = (window.innerWidth-2*PADDING-(mapRows-1)*SPACING)/mapRows;
+	
+	if(availableWidth >= 30) availableWidth = 30;
+	
+	
 	for(let i = 0; i < mapCols; i++){
 		let tr = document.createElement("tr");
 		for(let j = 0; j < mapRows; j++){
 			let td = document.createElement("td");
+			td.style.width = td.style.height = availableWidth+"px";
 			td.classList.add("locked");
 			tr.appendChild(td);
 
