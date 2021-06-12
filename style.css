@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
 * {
 	box-sizing: border-box;
 	padding: 0px;
@@ -10,18 +12,18 @@ body {
 	-moz-user-select: none;
 	-ms-user-select: none;
 	user-select: none;
-}
-
-div{
-	font-size: 36px;
-	color: white;
-	text-align: center;
-	margin: 0 auto;
+	font-family: 'Press Start 2P', cursive;
 }
 
 .scorelayout {
 	display: flex;
-	justify-content: center;
+	align-items: center;
+	justify-content: space-between;
+	margin: 10px auto;
+	padding-top: 10px;
+	max-width: 650px;
+	font-size: 24px;
+	color: white;
 }
 
 table {
@@ -31,11 +33,9 @@ table {
 }
 
 td{
-	width: 30px;
-	height: 30px;
 	border-radius: 4px;
 	text-align: center;
-	font-size: 20px;
+	font-size: auto;
 	font-weight: bold;
 }
 
