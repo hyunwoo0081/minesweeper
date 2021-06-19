@@ -43,6 +43,7 @@ function init(){
 						//left click;
 						if(isStart == -2){
 							//reStart;
+							resetGame();
 						}else{
 							openMap(j, i);
 						}
@@ -62,6 +63,26 @@ function init(){
 	});
 
 	flagText.innerHTML = numberConvert(bombcount);
+}
+
+function resetGame(){
+	flagCount = 0;
+	isStart = -1;
+	
+	flagText.innerHTML = numberConvert(bombcount);
+	timeText.innerHTML = "000";
+	
+	for(let i = 0; i < mapCols; i++){
+		const child = playground.childNodes[i].childNodes;
+		for(let j = 0; j < mapRows; j++){
+			const tile = child[j];
+			while(tile.classList[0] !== undefined){
+				tile.classList.remove(tile.classList[0]);
+			}
+			tile.classList.add("locked");
+			tile.innerHTML = "";
+		}
+	}
 }
 
 function numberConvert(x){
@@ -117,7 +138,6 @@ function mapOpener(x, y){
 			showSolution();
 			clearInterval(interval);
 			isStart = -2;
-			//alert("게임 종료!");
 		}
 	}
 }
