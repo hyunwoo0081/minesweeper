@@ -39,21 +39,21 @@ td{
 	font-weight: bold;
 }
 
-.locked {
+.closed {
 	background-color: #555;
 	transition: background-color 400ms;
 }
 
-.locked:hover { 
+.closed:hover { 
 	background-color: #888;
 	transition: background-color 0ms;
 }
 
-.unlocked {
+.opened {
 	background-color: #aaa;
 }
 
-.locked_flag {
+.closed_flag {
 	background-color: #333;
 	color: red;
 }
@@ -82,7 +82,7 @@ td{
 .type8 {
 	color: black;
 }
-.type_bomb {
+.type_incorrect {
 	color: black;
 	background-color: red;
 }

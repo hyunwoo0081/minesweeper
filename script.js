@@ -1,9 +1,10 @@
 const playground = document.querySelector(".playground");
 const flagText = document.querySelector(".flag");
 const timeText = document.querySelector(".time");
+const dx = [1, 0, -1, 0];
+const dy = [0, 1, 0, -1];
 
 let mapArray;
-
 let mapCols = 20, mapRows = 20;
 let bombcount = 40;
 let flagCount = 0;
@@ -11,8 +12,60 @@ let leftBlock = mapCols * mapRows;
 let isStart = -1;
 
 var interval;
-
 var mousePointer = [-1, -1, -1]; //x, y, mouseType;
+
+var box = {
+	getBox(x, y){
+		return playground.childNodes[y].childNodes[x];
+	},
+	openBox(x, y){
+		if(x < 0 || x >= mapRows || y < 0 || y >= mapCols) return;
+		
+		const node = box.getBox(x, y);
+		if(node.classList[0] === "closed"){
+			const block = mapArray[y][x];
+			if(block >= 0){
+				node.classList.replace("closed", "opened");
+				leftBlock--;
+				
+				if(block === 0){
+					for(let t = 0; t < 4; t++){
+						box.openBox(x+dx[t], y+dy[t]);
+					}
+				}else{
+					node.classList.add("type"+block);
+					node.innerHTML = block;
+				}
+			}
+			else{ //lose the game;
+				showSolution();
+				clearInterval(interval);
+				isStart = -2;
+			}
+		}
+	},
+	closeBox(x, y){
+		const node = box.getBox(x, y);
+		while(node.classList[0] !== undefined){
+			node.classList.remove(node.classList[0]);
+		}
+		node.classList.add("closed");
+		node.innerHTML = "";
+	},
+	toggleFlag(x, y){
+		const node =  box.getBox(x, y);
+		if(node.classList[0] === "closed"){
+			node.classList.replace("closed", "closed_flag");
+			node.innerHTML = "🚩";
+			flagCount++;
+		}
+		else if(node.classList[0] === "closed_flag"){
+			node.classList.replace("closed_flag", "closed");
+			node.innerHTML = "";
+			flagCount--;
+		}
+	}
+};
 
 init();
 function init(){
@@ -22,36 +75,49 @@ function init(){
 	
 	if(availableWidth >= 30) availableWidth = 30;
 	
-	
 	for(let i = 0; i < mapCols; i++){
 		let tr = document.createElement("tr");
 		for(let j = 0; j < mapRows; j++){
 			let td = document.createElement("td");
 			td.style.width = td.style.height = availableWidth+"px";
-			td.classList.add("locked");
+			td.classList.add("closed");
 			tr.appendChild(td);
 
 			td.addEventListener("mousedown", e => {
-				mousePointer[0] = j;
-				mousePointer[1] = i;
-				mousePointer[2] = e.button;
+				mousePointer = [j, i, e.button];
 			});
 
 			td.addEventListener("mouseup", e => {
-				if(mousePointer[0] == j && mousePointer[1] == i){
-					if(mousePointer[2] == 0){
-						//left click;
-						if(isStart == -2){
-							//reStart;
-							resetGame();
-						}else{
-							openMap(j, i);
-						}
+				if(mousePointer[0] !== j || mousePointer[1] !== i) return;
+
+				if(isStart === -2){
+					resetGame();
+					return;
+				}
+
+				if(mousePointer[2] === 0){ //left click;
+					if(isStart === -1){
+						isStart = 0;
+						createNewMap(j, i);
+
+						interval = setInterval(function(){
+							isStart++;
+							timeText.innerHTML = numberConvert(isStart);
+						}, 1000);
 					}
-					else if(mousePointer[2] == 2){
-						//right click;
-						setFlag(j, i);
+
+					box.openBox(j, i);
+
+					//victory the game;
+					if(isStart >= 0 && leftBlock === bombcount){
+						alert("고생하셨습니다.");
+						isStart = -2;
+						clearInterval(interval);
 					}
+				}
+				else if(mousePointer[2] === 2){ //right click;
+					box.toggleFlag(j, i);
+					flagText.innerHTML = flagCount < bombcount ? numberConvert(bombcount-flagCount): "000";
 				}
 			});
 		}
@@ -73,92 +139,10 @@ function resetGame(){
 	timeText.innerHTML = "000";
 	
 	for(let i = 0; i < mapCols; i++){
-		const child = playground.childNodes[i].childNodes;
 		for(let j = 0; j < mapRows; j++){
-			const tile = child[j];
-			while(tile.classList[0] !== undefined){
-				tile.classList.remove(tile.classList[0]);
-			}
-			tile.classList.add("locked");
-			tile.innerHTML = "";
+			box.closeBox(j, i);
 		}
 	}
-}
-
-function numberConvert(x){
-	if(x >= 100) return x;
-	if(x >= 10) return "0"+x;
-	return "00"+x;
-}
-
-function openMap(x, y){
-	if(isStart == -1){
-		isStart = 0;
-		createNewMap(x, y);
-		interval = setInterval(function(){
-			isStart++;
-			timeText.innerHTML = numberConvert(isStart);
-		}, 1000);
-	}
-
-	mapOpener(x, y);
-
-	//victory the game;
-	if(isStart >= 0 && leftBlock == bombcount){
-		alert("고생하셨습니다.");
-		isStart = -2;
-		clearInterval(interval);
-	}
-}
-
-
-const dx = [1, 0, -1, 0];
-const dy = [0, 1, 0, -1];
-function mapOpener(x, y){
-	if(x < 0 || x >= mapRows || y < 0 || y >= mapCols) return;
-	
-	const node = playground.childNodes[y].childNodes[x];
-	if(node.classList[0] == "locked"){
-		const block = mapArray[y][x];
-		if(block >= 0){
-			node.classList.remove("locked");
-			node.classList.add("unlocked");
-			leftBlock--;
-			
-			if(block === 0){
-				for(let t = 0; t < 4; t++){
-					mapOpener(x+dx[t], y+dy[t]);
-				}
-			}else{
-				node.classList.add("type"+block);
-				node.innerHTML = block;
-			}
-		}else{
-			//lose the game;
-			showSolution();
-			clearInterval(interval);
-			isStart = -2;
-		}
-	}
-}
-
-function setFlag(x, y){
-	if(isStart == -2) return;
-
-	const block = playground.childNodes[y].childNodes[x];
-	if(block.classList[0] == "locked"){
-		block.classList.remove("locked");
-		block.classList.add("locked_flag");
-		block.innerHTML = "v";
-		flagCount++;
-	}else if(block.classList[0] == "locked_flag"){
-		block.classList.remove("locked_flag");
-		block.classList.add("locked");
-		block.innerHTML = "";
-		flagCount--;
-	}
-	
-	flagText.innerHTML = flagCount < bombcount ? numberConvert(bombcount-flagCount): "000";
 }
 
 function createNewMap(startX, startY){
@@ -171,7 +155,7 @@ function createNewMap(startX, startY){
 		let x = Math.floor(Math.random()*mapRows);
 		let y = Math.floor(Math.random()*mapCols);
 
-		if(mapArray[y][x] == -1 || (x == startX && y == startY)){
+		if(mapArray[y][x] === -1 || (x === startX && y === startY)){
 			t--;
 			continue;
 		}
@@ -180,7 +164,7 @@ function createNewMap(startX, startY){
 			for(let j = -1; j <= 1; j++){
 				if(y+i < 0 || y+i >= mapCols || 
 					x+j < 0 || x+j >= mapRows || 
-					mapArray[y+i][x+j] == -1) continue;
+					mapArray[y+i][x+j] === -1) continue;
 				
 				mapArray[y+i][x+j]++;
 			}
@@ -191,28 +175,33 @@ function createNewMap(startX, startY){
 
 function showSolution(){
 	for(let i = 0; i < mapCols; i++){
-		const child = playground.childNodes[i].childNodes;
 		for(let j = 0; j < mapRows; j++){
-			if(child[j].classList[0] == "locked_flag") continue;
-
-			child[j].classList.remove("locked");
-			child[j].classList.remove("unlocked");
-			child[j].innerHTML = "";
-			for(let t = 1; t < 9; t++){
-				child[j].classList.remove("type"+t);
-			}
-
-			child[j].classList.add("unlocked");
-
+			const node = box.getBox(j, i);
 			const block = mapArray[i][j];
-			if(block > 0){
-				child[j].classList.add("type"+block);
-				child[j].innerHTML = block;
+
+			if(node.classList[0] === "closed"){
+				node.classList.replace("closed", "opened");
+
+				if(block > 0){
+					node.classList.add("type"+block);
+					node.innerHTML = block;
+				}
+				else if(block === -1){
+					node.classList.add("type_incorrect");
+					node.innerHTML = "💣";
+				}
 			}
-			else if(block == -1){
-				child[j].classList.add("type_bomb");
-				child[j].innerHTML = "O";
+			else if(node.classList[0] === "closed_flag" && block >= 0){
+					node.classList.remove("closed_flag");
+					node.classList.add("opened", "type_incorrect");
+					node.innerHTML = block !== 0 ? block : "";
 			}
 		}
 	}
+}
+
+function numberConvert(x){
+	if(x >= 100) return x;
+	if(x >= 10) return "0"+x;
+	return "00"+x;
 }
